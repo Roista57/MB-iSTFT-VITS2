@@ -28,16 +28,19 @@ if __name__ == '__main__':
         print("START:", filelist)
         filepaths_and_text = load_filepaths_and_text(filelist)
 
-        # 멀티프로세싱을 위해 인자를 준비합니다.
-        arguments = [(i, filepaths_and_text[i][args.text_index], args.text_cleaners) for i in
-                     range(len(filepaths_and_text))]
+        # 최초 1회 단일 쓰레드로 clean
+        first_idx, first_text, first_cleaners = 0, filepaths_and_text[0][args.text_index], args.text_cleaners
+        filepaths_and_text[0][args.text_index] = text._clean_text(first_text, first_cleaners)
 
-        # tqdm을 사용하여 병렬 처리 진행 상황을 표시합니다.
+        # 그 다음부터는 멀티프로세싱 사용
+        arguments = [(i, filepaths_and_text[i][args.text_index], args.text_cleaners) for i in
+                     range(1, len(filepaths_and_text))]  # 첫 번째 항목은 제외하고 시작
+
         cleaned_texts = {idx: text for idx, text in
                          tqdm(pool.imap_unordered(clean_text, arguments), total=len(arguments))}
 
-        for i in range(len(filepaths_and_text)):
-            filepaths_and_text[i][args.text_index] = cleaned_texts[i]
+        for i in range(1, len(filepaths_and_text)):  # 첫 번째 항목은 이미 처리했으므로 제외하고 시작
+            filepaths_and_text[i][args.text_index] = cleaned_texts[i-1]  # 첫 번째 항목은 이미 처리했으므로 인덱스 조정
 
         # 나머지 코드는 동일합니다.
         new_filelist = filelist + "." + args.out_extension
