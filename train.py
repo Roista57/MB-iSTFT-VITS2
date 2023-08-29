@@ -369,6 +369,17 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
         utils.save_checkpoint(net_d, optim_d, hps.train.learning_rate, epoch, os.path.join(hps.model_dir, "D_{}.pth".format(global_step)))
         if net_dur_disc is not None:
           utils.save_checkpoint(net_dur_disc, optim_dur_disc, hps.train.learning_rate, epoch, os.path.join(hps.model_dir, "DUR_{}.pth".format(global_step)))
+        old_g = os.path.join(hps.model_dir, "G_{}.pth".format(global_step - 100000))
+        old_d = os.path.join(hps.model_dir, "D_{}.pth".format(global_step - 100000))
+        # old_dur = os.path.join(hps.model_dir, "DUR_{}.pth".format(global_step - 100000))
+        if os.path.exists(old_g):
+          os.remove(old_g)
+        if os.path.exists(old_d):
+          os.remove(old_d)
+        '''
+        if os.path.exists(old_dur):
+          os.remove(old_dur)
+        '''
     global_step += 1
   
   if rank == 0:

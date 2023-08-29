@@ -20,7 +20,6 @@ if __name__ == '__main__':
     parser.add_argument("--text_cleaners", nargs="+", default=["korean_cleaners"])
     args = parser.parse_args()
 
-    # CPU 코어의 수만큼 프로세스를 사용합니다.
     num_workers = cpu_count()
     pool = Pool(num_workers)
 
@@ -28,22 +27,21 @@ if __name__ == '__main__':
         print("START:", filelist)
         filepaths_and_text = load_filepaths_and_text(filelist)
 
-        # 멀티프로세싱을 위해 인자를 준비합니다.
-        arguments = [(i, filepaths_and_text[i][args.text_index], args.text_cleaners) for i in
-                     range(len(filepaths_and_text))]
+        first_idx, first_text, first_cleaners = 0, filepaths_and_text[0][args.text_index], args.text_cleaners
+        filepaths_and_text[0][args.text_index] = text._clean_text(first_text, first_cleaners)
 
-        # tqdm을 사용하여 병렬 처리 진행 상황을 표시합니다.
+        arguments = [(i, filepaths_and_text[i][args.text_index], args.text_cleaners) for i in
+                     range(1, len(filepaths_and_text))]
+
         cleaned_texts = {idx: text for idx, text in
                          tqdm(pool.imap_unordered(clean_text, arguments), total=len(arguments))}
 
-        for i in range(len(filepaths_and_text)):
+        for i in range(1, len(filepaths_and_text)):
             filepaths_and_text[i][args.text_index] = cleaned_texts[i]
 
-        # 나머지 코드는 동일합니다.
         new_filelist = filelist + "." + args.out_extension
         with open(new_filelist, "w", encoding="utf-8") as f:
             f.writelines(["|".join(x) + "\n" for x in filepaths_and_text])
 
-    # Pool 닫기
     pool.close()
     pool.join()
