@@ -17,7 +17,6 @@ from data_utils import TextAudioLoader, TextAudioCollate, TextAudioSpeakerLoader
 from models import SynthesizerTrn
 from text.symbols import symbols
 from text import text_to_sequence
-from text2 import text_to_sequence as text_to_sequence2
 import langdetect
 
 from scipy.io.wavfile import write
@@ -56,6 +55,9 @@ def langdetector(text):  # from PolyLangVITS
         return text
 
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 def vcss(inputstr):
     fltstr = re.sub(r"[\[\]\(\)\{\}]", "", inputstr)
     fltstr = langdetector(fltstr)
@@ -65,16 +67,16 @@ def vcss(inputstr):
     sid = 0
     output_dir = 'output'
     with torch.no_grad():
-        x_tst = stn_tst.cuda().unsqueeze(0)
-        x_tst_lengths = torch.LongTensor([stn_tst.size(0)]).cuda()
-        audio = net_g.infer(x_tst, x_tst_lengths, sid=sid, noise_scale=.667, noise_scale_w=0.8, length_scale=1 / speed)[0][
-                0, 0].data.cpu().float().numpy()
+        x_tst = stn_tst.to(device).unsqueeze(0)
+        x_tst_lengths = torch.LongTensor([stn_tst.size(0)]).to(device)
+        audio = \
+        net_g.infer(x_tst, x_tst_lengths, sid=sid, noise_scale=.667, noise_scale_w=0.8, length_scale=1 / speed)[0][
+            0, 0].data.cpu().float().numpy()
     write(f'./{output_dir}/output_{sid}.wav', hps.data.sampling_rate, audio)
     print(f'./{output_dir}/output_{sid}.wav Generated!')
 
 
-
-hps = utils.get_hparams_from_file("./configs/mini_mb_istft_vits2_base.json")
+hps = utils.get_hparams_from_file("./model/config.json")
 
 if "use_mel_posterior_encoder" in hps.model.keys() and hps.model.use_mel_posterior_encoder == True:
     print("Using mel posterior encoder for VITS2")
@@ -89,12 +91,12 @@ net_g = SynthesizerTrn(
     len(symbols),
     posterior_channels,
     hps.train.segment_size // hps.data.hop_length,
-    **hps.model).cuda()
+    **hps.model).to(device)
 _ = net_g.eval()
 
-_ = utils.load_checkpoint("./models/G_2000.pth", net_g, None)
+_ = utils.load_checkpoint("./model/G_0.pth", net_g, None)
 
 # - text input
-input = "apple"
+input = "안녕하세요. 학습의 결과가 잘 나왔나요?"
 
 vcss(input)
