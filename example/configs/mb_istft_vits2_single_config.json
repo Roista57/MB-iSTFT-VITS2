@@ -48,7 +48,6 @@
       "mb_istft_vits": true,
       "istft_vits": false,
       "subbands": 4,
-      "gin_channels": 1,
       "gen_istft_n_fft": 16,
       "gen_istft_hop_size": 4,
       "inter_channels": 192,
@@ -68,7 +67,6 @@
       "use_spectral_norm": false,
       "use_sdp": false
     },
-	"speakers": ["kss1", "kss2", "kss3", "kss4"],
-	"symbols": ["_", ",", ".", "!", "?", "\u2026", "~", "\u3131", "\u3134", "\u3137", "\u3139", "\u3141", "\u3142", "\u3145", "\u3147", "\u3148", "\u314a", "\u314b", "\u314c", "\u314d", "\u314e", "\u3132", "\u3138", "\u3143", "\u3146", "\u3149", "\u314f", "\u3153", "\u3157", "\u315c", "\u3161", "\u3163", "\u3150", "\u3154", " "]
-  }
+	"speakers": ["kss"]
+}
   
